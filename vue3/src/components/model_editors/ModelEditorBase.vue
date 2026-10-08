@@ -29,16 +29,18 @@
 
     <v-dialog width="600px" v-model="leaveConfirmDialog">
         <v-card>
-            <v-closable-card-title v-model="leaveConfirmDialog" :title="$t('Confirm')"></v-closable-card-title>
+            <v-closable-card-title v-model="leaveConfirmDialog" title="Unsaved changes"></v-closable-card-title>
             <v-card-text>
                 {{ $t('WarnPageLeave') }}
             </v-card-text>
             <v-card-actions>
-                <v-btn @click="leaveConfirmDialog = false; leaveGoTo = null">{{ $t('Cancel') }}</v-btn>
-                <v-btn :to="leaveGoTo" color="warning" v-if="!dialog">{{ $t('Confirm') }}</v-btn>
-                <v-btn @click="emit('close')" color="warning" v-if="dialog">{{ $t('Confirm') }}</v-btn>
+                <v-btn @click="leaveConfirmDialog = false; leaveGoTo = null">Return</v-btn>
+                <v-btn color="save" @click="emit('save'); leaveConfirmDialog = false; leaveGoTo = null">{{ $t('Save') }}</v-btn>
+                <v-btn :to="leaveGoTo" color="warning" v-if="!dialog">Leave</v-btn>
+                <v-btn @click="emit('close')" color="warning" v-if="dialog">Leave</v-btn>
             </v-card-actions>
         </v-card>
+    </v-dialog>
 
     </v-dialog>
 </template>
