@@ -2,7 +2,7 @@
     <model-editor-base
         :loading="loading"
         :dialog="dialog"
-        @save="saveObject(); saveObjectConversions()"
+        @save="saveAll()"
         @delete="deleteObject"
         @close="emit('close'); editingObjChanged = false"
         :is-update="isUpdate()"
@@ -27,6 +27,7 @@
                     <v-form :disabled="loading">
                         <v-text-field :label="$t('Name')" v-model="editingObj.name"></v-text-field>
                         <v-text-field :label="$t('Plural')" v-model="editingObj.pluralName"></v-text-field>
+                        <v-text-field label="Add aliases (separate with commas)" v-model="newAliases" :hint="aliasHint" persistent-hint class="mb-2"></v-text-field>
                         <v-textarea :label="$t('Description')" v-model="editingObj.description"></v-textarea>
 
                         <v-model-select :label="$t('Category')" v-model="editingObj.supermarketCategory" model="SupermarketCategory" create ></v-model-select>
@@ -160,7 +161,7 @@ import {openFdcPage} from "@/utils/fdc.ts";
 import {DateTime} from "luxon";
 import HierarchyEditor from "@/components/inputs/HierarchyEditor.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
-
+import {useAliases} from "@/composables/useAliases";
 
 const props = defineProps({
     item: {type: {} as PropType<Food>, required: false, default: null},
@@ -171,6 +172,13 @@ const props = defineProps({
 
 const emit = defineEmits(['create', 'save', 'delete', 'close', 'changedState'])
 const {setupState, deleteObject, saveObject, isUpdate, editingObjName, loading, editingObj, editingObjChanged, modelClass} = useModelEditorFunctions<Food>('Food', emit)
+const {newAliases, aliasHint, saveAliases} = useAliases('FOOD_ALIAS', editingObj, editingObjChanged)
+
+async function saveAll() {
+    await saveAliases()
+    saveObject()
+    saveObjectConversions()
+}
 
 /**
  * watch prop changes and re-initialize editor
