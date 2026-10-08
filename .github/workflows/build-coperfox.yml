@@ -1,9 +1,9 @@
-name: Build my Tandoor image
+name: Build Copperfox Tandoor image
 
 on:
   workflow_dispatch:
   push:
-    tags: ['*-mine*']
+    branches: [copperfox]
 
 permissions:
   contents: read
@@ -46,6 +46,8 @@ jobs:
           pull: true
           push: true
           platforms: linux/amd64
-          tags: ghcr.io/${{ env.OWNER }}/recipes:${{ github.ref_name }}
+          tags: |
+            ghcr.io/${{ env.OWNER }}/recipes:copperfox
+            ghcr.io/${{ env.OWNER }}/recipes:build-${{ github.run_number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
