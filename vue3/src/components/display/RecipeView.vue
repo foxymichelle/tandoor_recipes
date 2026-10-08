@@ -126,8 +126,6 @@
                     <v-btn variant="tonal" prepend-icon="$shopping">{{ $t('Add_to_Shopping') }}
                         <add-to-shopping-dialog :recipe="recipe"></add-to-shopping-dialog>
                     </v-btn>
-                    <v-btn variant="tonal" prepend-icon="fa-solid fa-print" :active="false" target="_blank"
-                           :to="{ name: 'RecipeViewPage', params: {id: recipe.id}, query: {print: 'true', servings: servings} }">{{ $t('Print') }}</v-btn>
                 </v-card-text>
             </v-card>
             <model-edit-dialog model="MealPlan" :itemDefaults="{recipe: recipe, servings: servings}" :close-after-create="false" :close-after-save="false"
