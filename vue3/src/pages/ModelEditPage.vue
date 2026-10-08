@@ -1,10 +1,18 @@
 <template>
     <v-container>
-        <v-row>
+        <v-row class="edit-top-bar">
             <v-col>
                 <v-card>
                     <v-card-text class="pt-2 pb-2">
                         <v-btn variant="flat" @click="router.go(-1)" prepend-icon="fa-solid fa-arrow-left">{{ $t('Back') }}</v-btn>
+                        <template v-if="modelEditorFunctions && model.toLowerCase() == 'recipe' && !mobile">
+                            <v-btn variant="tonal" color="save" class="ms-2" prepend-icon="$save" :loading="modelEditorFunctions.loading"
+                                   @click="modelEditorFunctions.saveObject()">{{ $t('Save') }}
+                            </v-btn>
+                            <v-btn v-if="props.id" variant="tonal" color="delete" class="ms-2" prepend-icon="$delete" :disabled="modelEditorFunctions.loading"
+                                   :to="{name: 'ModelDeletePage', params: {model: modelEditorFunctions.modelClass.model.name, id: props.id}}">{{ $t('Delete') }}
+                            </v-btn>
+                        </template>
                         <v-btn variant="flat" @click="router.push({name : 'RecipeViewPage', params: {id: props.id}})" class="float-right" prepend-icon="fa-solid fa-eye"
                                v-if="props.id && model.toLowerCase() == 'recipe'">{{ $t('View') }}
                         </v-btn>
@@ -103,5 +111,10 @@ function objectDeleted() {
 </script>
 
 <style scoped>
-
+.edit-top-bar {
+    position: sticky;
+    top: var(--v-layout-top, 0px);
+    z-index: 10;
+    background: rgb(var(--v-theme-background));
+}
 </style>

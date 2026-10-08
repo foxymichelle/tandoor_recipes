@@ -118,6 +118,22 @@
             </v-row>
         </template>
 
+        <template v-if="useUserPreferenceStore().isAuthenticated">
+            <v-card class="mt-1 d-print-none">
+                <v-card-text class="pa-2 d-flex flex-wrap" style="gap: 8px">
+                    <v-btn variant="tonal" prepend-icon="$edit" :to="{ name: 'ModelEditPage', params: {model: 'recipe', id: recipe.id} }">{{ $t('Edit') }}</v-btn>
+                    <v-btn variant="tonal" prepend-icon="$mealplan" @click="mealPlanDialog = true">{{ $t('Add_to_Plan') }}</v-btn>
+                    <v-btn variant="tonal" prepend-icon="$shopping">{{ $t('Add_to_Shopping') }}
+                        <add-to-shopping-dialog :recipe="recipe"></add-to-shopping-dialog>
+                    </v-btn>
+                    <v-btn variant="tonal" prepend-icon="fa-solid fa-print" :active="false" target="_blank"
+                           :to="{ name: 'RecipeViewPage', params: {id: recipe.id}, query: {print: 'true', servings: servings} }">{{ $t('Print') }}</v-btn>
+                </v-card-text>
+            </v-card>
+            <model-edit-dialog model="MealPlan" :itemDefaults="{recipe: recipe, servings: servings}" :close-after-create="false" :close-after-save="false"
+                               v-model="mealPlanDialog"></model-edit-dialog>
+        </template>
+
         <template v-if="recipe.filePath && !useUserPreferenceStore().isPrintMode">
             <external-recipe-viewer class="mt-2" :recipe="recipe"></external-recipe-viewer>
 
@@ -217,6 +233,8 @@ import PrivateRecipeBadge from "@/components/display/PrivateRecipeBadge.vue";
 import ModelSelect from "@/components/inputs/ModelSelect.vue";
 import RecipeScalingDialog from "@/components/dialogs/RecipeScalingDialog.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import ModelEditDialog from "@/components/dialogs/ModelEditDialog.vue";
+import AddToShoppingDialog from "@/components/dialogs/AddToShoppingDialog.vue";
 
 const {request, release} = useWakeLock()
 const {doAiImport, fileApiLoading} = useFileApi()
@@ -229,6 +247,7 @@ const props = defineProps<{
 
 const servings = ref(props.servings ?? recipe.value.servings ?? 1)
 const showFullRecipeName = ref(false)
+const mealPlanDialog = ref(false)
 
 const selectedAiProvider = ref<undefined | AiProvider>(useUserPreferenceStore().activeSpace.aiDefaultProvider)
 

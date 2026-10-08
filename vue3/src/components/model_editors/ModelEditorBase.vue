@@ -42,7 +42,6 @@
         </v-card>
     </v-dialog>
 
-    </v-dialog>
 </template>
 
 <script setup lang="ts">
