@@ -50,6 +50,8 @@
         <v-row>
             <v-col>
                 <v-text-field prepend-inner-icon="$search" :label="$t('Search')" v-model="query" v-if="!genericModel.model.disableSearch" clearable></v-text-field>
+                <v-switch v-if="incompleteSupported" v-model="onlyIncomplete" color="primary" hide-details density="compact"
+                          :label="genericModel.model.name == 'Food' ? 'Only foods without a category' : 'Only units without a base unit'"></v-switch>
 
                 <v-data-table-server
                     v-model="selectedItems"
@@ -162,7 +164,7 @@
 <script setup lang="ts">
 
 
-import {onBeforeMount, PropType, ref, watch} from "vue";
+import {computed, onBeforeMount, PropType, ref, watch} from "vue";
 import {ErrorMessageType, useMessageStore} from "@/stores/MessageStore";
 import {useI18n} from "vue-i18n";
 import {EditorSupportedModels, EditorSupportedTypes, GenericModel, getGenericModelFromString, Model, TInviteLink,} from "@/types/Models";
@@ -215,6 +217,18 @@ const items = ref([] as Array<any>)
 const itemCount = ref(0)
 
 const genericModel = ref({} as GenericModel)
+const incompleteQuery = useRouteQuery('incomplete', '')
+const onlyIncomplete = computed({
+    get: () => incompleteQuery.value == 'true',
+    set: (value: boolean) => {
+        incompleteQuery.value = value ? 'true' : ''
+    }
+})
+const incompleteSupported = computed(() => genericModel.value?.model?.name == 'Food' || genericModel.value?.model?.name == 'Unit')
+
+watch(onlyIncomplete, () => {
+    loadItems({page: 1})
+})
 
 // when navigating to ModelListPage from ModelListPage with a different model lifecycle hooks are not called so watch for change here
 watch(() => props.model, (newValue, oldValue) => {
@@ -252,6 +266,10 @@ function loadItems(options: VDataTableUpdateOptions) {
     pageSize.value = options.itemsPerPage
 
     let request = {query: debouncedQuery.value, page: options.page, pageSize: pageSize.value}
+    if (onlyIncomplete.value && incompleteSupported.value) {
+        loadIncompleteItems(options.page)
+        return
+    }
 
     genericModel.value.list(request, {signal: signal.value}).then((r: any) => {
         items.value = r.results
@@ -263,6 +281,46 @@ function loadItems(options: VDataTableUpdateOptions) {
     }).finally(() => {
         loading.value = false
     })
+}
+
+/**
+ * load every item of the current model, keep only the incomplete ones (food without category, unit without base unit),
+ * sort newest (highest id) first and show the requested page of the result
+ * @param requestedPage page of the filtered result to show
+ */
+async function loadIncompleteItems(requestedPage: number) {
+    try {
+        const all: any[] = []
+        let currentPage = 1
+        let total = 0
+        do {
+            const r: any = await genericModel.value.list({query: debouncedQuery.value, page: currentPage, pageSize: 100}, {signal: signal.value})
+            all.push(...r.results)
+            total = r.count
+            currentPage++
+            if (r.results.length == 0) {
+                break
+            }
+        } while (all.length < total)
+
+        const incomplete = all.filter((item: any) => isIncomplete(item)).sort((a: any, b: any) => b.id - a.id)
+        const start = (requestedPage - 1) * pageSize.value
+        items.value = incomplete.slice(start, start + pageSize.value)
+        itemCount.value = incomplete.length
+    } catch (err: any) {
+        if (err.name !== 'AbortError') {
+            useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
+        }
+    } finally {
+        loading.value = false
+    }
+}
+
+function isIncomplete(item: any): boolean {
+    if (genericModel.value.model.name == 'Food') {
+        return !item.supermarketCategory
+    }
+    return !item.baseUnit
 }
 
 // model specific functions
