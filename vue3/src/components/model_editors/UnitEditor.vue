@@ -46,8 +46,7 @@ const props = defineProps({
 const emit = defineEmits(['create', 'save', 'delete', 'close', 'changedState'])
 const modelEditorFunctions = useModelEditorFunctions<Unit>('Unit', emit)
 const {setupState, deleteObject, saveObject, isUpdate, editingObjName, loading, editingObj, editingObjChanged, modelClass} = modelEditorFunctions
-const model = defineModel<typeof modelEditorFunctions>()
-const {newAliases, aliasHint, saveAliases} = useAliases('UNIT_ALIAS', editingObj, editingObjChanged)
+const model = defineModel<typeof modelEditorFunctions>()const {newAliases, aliasHint, saveAliases} = useAliases('UNIT_ALIAS', editingObj, editingObjChanged)
 
 async function saveAll() {
     await saveAliases()
