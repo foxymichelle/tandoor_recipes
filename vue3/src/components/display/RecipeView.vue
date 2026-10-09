@@ -231,8 +231,8 @@ import PrivateRecipeBadge from "@/components/display/PrivateRecipeBadge.vue";
 import ModelSelect from "@/components/inputs/ModelSelect.vue";
 import RecipeScalingDialog from "@/components/dialogs/RecipeScalingDialog.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
-import ModelEditDialog from "@/components/dialogs/ModelEditDialog.vue";
 import AddToShoppingDialog from "@/components/dialogs/AddToShoppingDialog.vue";
+import ModelEditDialog from "@/components/dialogs/ModelEditDialog.vue";
 
 const {request, release} = useWakeLock()
 const {doAiImport, fileApiLoading} = useFileApi()
