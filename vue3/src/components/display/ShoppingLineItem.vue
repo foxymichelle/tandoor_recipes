@@ -26,7 +26,7 @@
                         <span class="ms-1" v-if="a.unit">{{ pluralString(a.unit, a.amount) }}</span>
                     </span>
                 </div>
-                <div v-if="infoRow"><small class="text-disabled font-italic">{{ infoRow }}</small></div>
+                <div v-if="infoRow" :style="(isChecked || isDelayedFood) ? 'padding-left: 1.25em' : ''"><small class="text-disabled font-italic">{{ infoRow }}</small></div>
             </div>
         </div>
 

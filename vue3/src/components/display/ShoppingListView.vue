@@ -13,7 +13,7 @@
         <v-menu :close-on-content-click="false">
             <template v-slot:activator="{ props }">
                 <v-btn
-                    class="me-4 float-right"
+                    class="me-4 ms-auto"
                     height="100%"
                     rounded="0"
                     variant="plain"
