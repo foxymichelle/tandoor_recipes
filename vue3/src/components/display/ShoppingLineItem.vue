@@ -18,9 +18,9 @@
                 <div>
                     <i class="fas fa-check text-success fa-fw" v-if="isChecked"></i>
                     <i class="fas fa-clock-rotate-left text-info fa-fw" v-if="isDelayedFood && !isChecked"></i>
-                    <span :class="isChecked ? 'font-weight-regular' : 'font-weight-bold'">{{ pluralString(shoppingListFood.food, (amounts.length > 1 ? 2 : amounts[0]?.amount ?? 1)) }}</span>
+                    <span :class="isChecked ? 'font-weight-regular font-italic' : 'font-weight-bold'">{{ pluralString(shoppingListFood.food, (amounts.length > 1 ? 2 : amounts[0]?.amount ?? 1)) }}</span>
                     <span v-if="amounts.length > 0"> &ndash; </span>
-                    <span v-for="(a, index) in amounts" v-bind:key="a.key" :class="{'text-disabled': a.checked || a.delayed}" class="text-no-wrap">
+                    <span v-for="(a, index) in amounts" v-bind:key="a.key" :class="{'text-disabled font-italic': a.checked || a.delayed}" class="text-no-wrap">
                         <span v-if="index > 0">, </span>
                         <span>{{ $n(a.amount) }}</span>
                         <span class="ms-1" v-if="a.unit">{{ pluralString(a.unit, a.amount) }}</span>
