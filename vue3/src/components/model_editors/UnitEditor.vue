@@ -53,7 +53,6 @@ async function saveAll() {
     saveObject()
 }
 model.value = {...modelEditorFunctions, saveObject: saveAll} as typeof modelEditorFunctions
-
 /**
  * watch prop changes and re-initialize editor
  * required to embed editor directly into pages and be able to change item from the outside
