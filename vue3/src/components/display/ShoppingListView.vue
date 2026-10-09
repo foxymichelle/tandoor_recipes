@@ -686,8 +686,9 @@ function isAllSelected(category: IShoppingListCategory | undefined = undefined) 
 }
 
 .shopping-section-title {
-    margin-top: 24px;
+    margin-top: 40px;
     margin-bottom: 8px;
+    font-size: .8rem;
     font-weight: bold;
     text-transform: uppercase;
     color: rgb(var(--v-theme-on-background));
