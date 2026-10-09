@@ -363,35 +363,6 @@
                                             </div>
                                         </template>
                                     </v-list-item>
-                                        <template #prepend>
-                                            <v-btn color="edit" icon>
-                                                {{ r.servings }}
-                                                <number-scaler-dialog
-                                                    v-if="r.mealplan == undefined"
-                                                    :number="r.servings"
-                                                    @confirm="(servings: number) => {updateRecipeServings(r, servings)}"
-                                                ></number-scaler-dialog>
-                                                <model-edit-dialog model="MealPlan" :item-id="r.mealplan" v-if="r.mealplan != undefined" activator="parent"></model-edit-dialog>
-                                            </v-btn>
-
-                                        </template>
-
-                                        <div class="ms-2">
-                                            <p v-if="r.recipe">{{ r.recipeData.name }}<br/></p>
-                                            <p v-if="r.mealplan">
-                                                {{ r.mealPlanData.mealType.name }} - {{ DateTime.fromJSDate(r.mealPlanData.fromDate).toLocaleString(DateTime.DATE_FULL) }}
-                                                #{{ r.id }}
-                                            </p>
-                                        </div>
-
-                                        <template #append>
-                                            <v-btn icon color="delete">
-                                                <v-icon icon="$delete"></v-icon>
-                                                <delete-confirm-dialog :object-name="r.name" :model-name="$t('ShoppingListRecipe')"
-                                                                       @delete="deleteListRecipe(r)"></delete-confirm-dialog>
-                                            </v-btn>
-                                        </template>
-                                    </v-list-item>
                                 </v-list>
 
 
