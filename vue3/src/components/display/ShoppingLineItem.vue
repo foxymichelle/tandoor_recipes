@@ -13,26 +13,20 @@
             <span :style="{background: sl.color}" v-for="sl in shoppingList"></span>
         </div>
 
-        <div class="flex-grow-1 p-2">
-            <div class="d-flex">
-                <div class="d-flex flex-column pr-2 pl-4">
-                    <span v-for="a in amounts" v-bind:key="a.key">
-                        <span>
-                            <i class="fas fa-check text-success fa-fw" v-if="a.checked"></i>
-                            <i class="fas fa-clock-rotate-left text-info fa-fw" v-if="a.delayed"></i> <b>
-                            <span :class="{'text-disabled': a.checked || a.delayed}" class="text-no-wrap">
-                                <span v-if="amounts.length > 1 || (amounts.length == 1 && !isSingularAmount(a.amount)) || a.unit">{{ $n(a.amount) }}</span>
-                                <span class="ms-1" v-if="a.unit">{{ pluralString(a.unit, a.amount) }}</span>
-                            </span>
-                            </b>
-                        </span>
-                        <br/>
+        <div class="flex-grow-1 p-2 ps-4">
+            <div class="d-flex flex-column">
+                <div>
+                    <i class="fas fa-check text-success fa-fw" v-if="isChecked"></i>
+                    <i class="fas fa-clock-rotate-left text-info fa-fw" v-if="isDelayedFood && !isChecked"></i>
+                    <span :class="isChecked ? 'font-weight-regular' : 'font-weight-bold'">{{ pluralString(shoppingListFood.food, (amounts.length > 1 ? 2 : amounts[0]?.amount ?? 1)) }}</span>
+                    <span v-if="amounts.length > 0"> &ndash; </span>
+                    <span v-for="(a, index) in amounts" v-bind:key="a.key" :class="{'text-disabled': a.checked || a.delayed}" class="text-no-wrap">
+                        <span v-if="index > 0">, </span>
+                        <span>{{ $n(a.amount) }}</span>
+                        <span class="ms-1" v-if="a.unit">{{ pluralString(a.unit, a.amount) }}</span>
                     </span>
                 </div>
-                <div class="d-flex  flex-column flex-grow-1 align-self-center">
-                    {{ pluralString(shoppingListFood.food, (amounts.length > 1 ? 2 : amounts[0]?.amount ?? 1)) }} 
-                    <span v-if="infoRow"><small class="text-disabled">{{ infoRow }}</small></span>
-                </div>
+                <div v-if="infoRow"><small class="text-disabled font-italic">{{ infoRow }}</small></div>
             </div>
         </div>
 
@@ -72,7 +66,7 @@ import {ErrorMessageType, useMessageStore} from "@/stores/MessageStore";
 import {IShoppingListFood, ShoppingLineAmount} from "@/types/Shopping";
 import {isDelayed, isEntryVisible, isShoppingListFoodDelayed, isShoppingListFoodVisible} from "@/utils/logic_utils";
 import ShoppingLineItemDialog from "@/components/dialogs/ShoppingLineItemDialog.vue";
-import {pluralString, isSingularAmount} from "@/utils/model_utils.ts";
+import {pluralString} from "@/utils/model_utils.ts";
 import ShoppingListsBar from "@/components/display/ShoppingListsBar.vue";
 
 const emit = defineEmits(['clicked'])
@@ -111,6 +105,13 @@ const isChecked = computed(() => {
         }
     }
     return true
+})
+
+/**
+ * true if any entry of this food is delayed
+ */
+const isDelayedFood = computed(() => {
+    return entries.value.some(e => isDelayed(e))
 })
 
 /**

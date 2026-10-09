@@ -188,7 +188,7 @@
                             <v-skeleton-loader type="list-item"></v-skeleton-loader>
                         </v-list>
                         <v-list class="mt-3" density="compact" v-model:selected="selectedLines" select-strategy="leaf" v-else>
-                            <template v-for="category in shoppingListItems" :key="category.name">
+                            <template v-for="category in activeItems" :key="'a_' + category.name">
 
 
                                 <v-list-subheader :style="subheaderStyle" v-if="category.name === useShoppingStore().UNDEFINED_CATEGORY">
@@ -210,7 +210,36 @@
                                 </v-list-subheader>
                                 <v-divider></v-divider>
 
-                                <template v-for="[i, value] in category.foods" :key="value.food.id">
+                                <template v-for="[i, value] in category.foods" :key="'a_' + value.food.id">
+                                    <shopping-line-item :shopping-list-food="value" :select-enabled="selectEnabled"></shopping-line-item>
+                                </template>
+
+                            </template>
+                            <v-list-subheader class="shopping-section-header" v-if="completedItems.length > 0">{{ $t('Completed') }}</v-list-subheader>
+                            <v-divider v-if="completedItems.length > 0"></v-divider>
+                            <template v-for="category in completedItems" :key="'c_' + category.name">
+
+
+                                <v-list-subheader :style="subheaderStyle" v-if="category.name === useShoppingStore().UNDEFINED_CATEGORY">
+
+                                    <v-btn color="secondary" variant="text" icon="fa-regular fa-square" @click="selectAll(category)"
+                                           v-if="selectEnabled && !isAllSelected(category)"></v-btn>
+                                    <v-btn color="secondary" variant="text" icon="fa-solid fa-square-check" @click="deselectCategory(category)"
+                                           v-if="selectEnabled && isAllSelected(category)"></v-btn>
+                                    <i>{{ $t('NoCategory') }}</i>
+
+                                </v-list-subheader>
+
+                                <v-list-subheader :style="subheaderStyle" v-else>
+                                    <v-btn color="secondary" variant="text" icon="fa-regular fa-square" @click="selectAll(category)"
+                                           v-if="selectEnabled && !isAllSelected(category)"></v-btn>
+                                    <v-btn color="secondary" variant="text" icon="fa-solid fa-square-check" @click="deselectCategory(category)"
+                                           v-if="selectEnabled && isAllSelected(category)"></v-btn>
+                                    {{ category.name }}
+                                </v-list-subheader>
+                                <v-divider></v-divider>
+
+                                <template v-for="[i, value] in category.foods" :key="'c_' + value.food.id">
                                     <shopping-line-item :shopping-list-food="value" :select-enabled="selectEnabled"></shopping-line-item>
                                 </template>
 
@@ -402,13 +431,41 @@ const shoppingListItems = computed(() => {
 })
 
 /**
+ * foods that still need to be bought (not every entry checked), split by category
+ */
+const activeItems = computed(() => splitByChecked(false))
+
+/**
+ * foods that are fully checked off, split by category, shown in their own section below the list
+ */
+const completedItems = computed(() => splitByChecked(true))
+
+function splitByChecked(completed: boolean): IShoppingListCategory[] {
+    const result: IShoppingListCategory[] = []
+    shoppingListItems.value.forEach(category => {
+        const foods = new Map<number, IShoppingListFood>()
+        category.foods.forEach((slf, key) => {
+            const allChecked = slf.entries.size > 0 && Array.from(slf.entries.values()).every(e => e.checked)
+            if (allChecked === completed) {
+                foods.set(key, slf)
+            }
+        })
+        if (foods.size > 0) {
+            result.push({name: category.name, foods: foods})
+        }
+    })
+    return result
+}
+
+/**
  * change style of subheaders depending on select mode
  */
 const subheaderStyle = computed(() => {
+    let style = 'margin-top: 20px; text-transform: uppercase;'
     if (selectEnabled.value) {
-        return 'padding-inline-start: 0!important'
+        style += ' padding-inline-start: 0!important;'
     }
-    return ''
+    return style
 })
 
 watch(() => useUserPreferenceStore().deviceSettings, () => {
@@ -573,5 +630,9 @@ function isAllSelected(category: IShoppingListCategory | undefined = undefined) 
 </script>
 
 <style scoped>
-
+.shopping-section-header {
+    margin-top: 32px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
 </style>
