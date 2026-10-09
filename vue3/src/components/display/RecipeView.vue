@@ -121,11 +121,11 @@
         <template v-if="useUserPreferenceStore().isAuthenticated">
             <v-card class="mt-1 d-print-none">
                 <v-card-text class="pa-2 d-flex flex-wrap" style="gap: 8px">
-                    <v-btn variant="tonal" prepend-icon="$edit" :to="{ name: 'ModelEditPage', params: {model: 'recipe', id: recipe.id} }">{{ $t('Edit') }}</v-btn>
                     <v-btn variant="tonal" prepend-icon="$mealplan" @click="mealPlanDialog = true">{{ $t('Add_to_Plan') }}</v-btn>
                     <v-btn variant="tonal" prepend-icon="$shopping">{{ $t('Add_to_Shopping') }}
                         <add-to-shopping-dialog :recipe="recipe"></add-to-shopping-dialog>
                     </v-btn>
+                    <v-btn variant="tonal" prepend-icon="$edit" :to="{ name: 'ModelEditPage', params: {model: 'recipe', id: recipe.id} }">{{ $t('Edit') }}</v-btn>
                 </v-card-text>
             </v-card>
             <model-edit-dialog model="MealPlan" :itemDefaults="{recipe: recipe, servings: servings}" :close-after-create="false" :close-after-save="false"
