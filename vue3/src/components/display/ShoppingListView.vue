@@ -187,8 +187,10 @@
                             <v-skeleton-loader type="list-item"></v-skeleton-loader>
                             <v-skeleton-loader type="list-item"></v-skeleton-loader>
                         </v-list>
-                        <v-list class="mt-3" density="compact" v-model:selected="selectedLines" select-strategy="leaf" v-else>
-                            <template v-for="category in activeItems" :key="'a_' + category.name">
+                        <v-list class="mt-3 pa-0" density="compact" v-model:selected="selectedLines" select-strategy="leaf" style="background: transparent;" v-else>
+
+                        <div class="shopping-section-box" v-if="activeItems.length > 0">
+                        <template v-for="category in activeItems" :key="'a_' + category.name">
 
 
                                 <v-list-subheader :style="subheaderStyle" v-if="category.name === useShoppingStore().UNDEFINED_CATEGORY">
@@ -215,8 +217,10 @@
                                 </template>
 
                             </template>
-                            <v-list-subheader class="shopping-section-header" v-if="completedItems.length > 0">{{ $t('Completed') }}</v-list-subheader>
-                            <v-divider v-if="completedItems.length > 0"></v-divider>
+                            </div>
+
+                            <div class="shopping-section-title" v-if="completedItems.length > 0">{{ $t('Completed') }}</div>
+                            <div class="shopping-section-box" v-if="completedItems.length > 0">
                             <template v-for="category in completedItems" :key="'c_' + category.name">
 
 
@@ -244,6 +248,7 @@
                                 </template>
 
                             </template>
+                            </div>
                         </v-list>
 
                         <!-- TODO remove once append to body for model select is working properly -->
@@ -674,9 +679,17 @@ function isAllSelected(category: IShoppingListCategory | undefined = undefined) 
 </script>
 
 <style scoped>
-.shopping-section-header {
-    margin-top: 32px;
+.shopping-section-box {
+    background: rgb(var(--v-theme-surface));
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.shopping-section-title {
+    margin-top: 24px;
+    margin-bottom: 8px;
     font-weight: bold;
     text-transform: uppercase;
+    color: rgb(var(--v-theme-on-background));
 }
 </style>
