@@ -5,13 +5,20 @@
                 <v-card>
                     <v-card-text class="pt-2 pb-2">
                         <v-btn variant="flat" @click="router.go(-1)" prepend-icon="fa-solid fa-arrow-left">{{ $t('Back') }}</v-btn>
-                        <template v-if="modelEditorFunctions && model.toLowerCase() == 'recipe' && !mobile">
+                        <template v-if="modelEditorFunctions && !mobile">
                             <v-btn variant="tonal" color="save" class="ms-2" prepend-icon="$save" :loading="modelEditorFunctions.loading"
-                                   @click="modelEditorFunctions.saveObject()">{{ $t('Save') }}
+                                   @click="modelEditorFunctions.saveObject()">{{ props.id ? $t('Save') : $t('Create') }}
                             </v-btn>
-                            <v-btn v-if="props.id" variant="tonal" color="delete" class="ms-2" prepend-icon="$delete" :disabled="modelEditorFunctions.loading"
-                                   :to="{name: 'ModelDeletePage', params: {model: modelEditorFunctions.modelClass.model.name, id: props.id}}">{{ $t('Delete') }}
-                            </v-btn>
+                            <template v-if="props.id && !modelEditorFunctions.modelClass.model.disableDelete">
+                                <v-btn v-if="modelEditorFunctions.modelClass.model.isAdvancedDelete" variant="tonal" color="delete" class="ms-2" prepend-icon="$delete"
+                                       :disabled="modelEditorFunctions.loading"
+                                       :to="{name: 'ModelDeletePage', params: {model: modelEditorFunctions.modelClass.model.name, id: props.id}}">{{ $t('Delete') }}
+                                </v-btn>
+                                <v-btn v-else variant="tonal" color="delete" class="ms-2" prepend-icon="$delete" :disabled="modelEditorFunctions.loading">{{ $t('Delete') }}
+                                    <delete-confirm-dialog :object-name="modelEditorFunctions.editingObjName()" :model-name="$t(modelEditorFunctions.modelClass.model.localizationKey)"
+                                                           @delete="modelEditorFunctions.deleteObject()"></delete-confirm-dialog>
+                                </v-btn>
+                            </template>
                         </template>
                         <v-btn variant="flat" @click="router.push({name : 'RecipeViewPage', params: {id: props.id}})" class="float-right" prepend-icon="fa-solid fa-eye"
                                v-if="props.id && model.toLowerCase() == 'recipe'">{{ $t('View') }}
