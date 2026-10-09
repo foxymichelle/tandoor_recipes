@@ -312,8 +312,57 @@
                                     </template>
                                 </v-model-select>
 
+                                <div class="d-flex align-center mt-2">
+                                    <v-checkbox-btn
+                                        :model-value="allRecipesSelected"
+                                        :indeterminate="someRecipesSelected"
+                                        :label="$t('SelectAll')"
+                                        @update:model-value="toggleAllRecipes"
+                                    ></v-checkbox-btn>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="delete" variant="flat" :disabled="selectedCurrentIds.length == 0">
+                                        {{ $t('Delete') }} {{ $t('Recipes') }}
+                                        <delete-confirm-dialog v-if="selectedCurrentIds.length > 0"
+                                                               :object-name="selectedCurrentIds.length + ' ' + $t('Recipes')"
+                                                               :model-name="$t('ShoppingListRecipe')"
+                                                               @delete="deleteSelectedRecipes()"></delete-confirm-dialog>
+                                    </v-btn>
+                                </div>
+
                                 <v-list>
-                                    <v-list-item v-for="r in useShoppingStore().getAssociatedRecipes()">
+                                    <v-list-item v-for="r in useShoppingStore().getAssociatedRecipes()" :key="r.id">
+                                        <template #prepend>
+                                            <v-checkbox-btn v-model="selectedRecipeIds" :value="r.id"></v-checkbox-btn>
+                                            <div style="padding: 6px;">
+                                                <v-btn color="edit" icon style="width: 36px; height: 36px;">
+                                                    {{ r.servings }}
+                                                    <number-scaler-dialog
+                                                        v-if="r.mealplan == undefined"
+                                                        :number="r.servings"
+                                                        @confirm="(servings: number) => {updateRecipeServings(r, servings)}"
+                                                    ></number-scaler-dialog>
+                                                    <model-edit-dialog model="MealPlan" :item-id="r.mealplan" v-if="r.mealplan != undefined" activator="parent"></model-edit-dialog>
+                                                </v-btn>
+                                            </div>
+                                        </template>
+
+                                        <div class="ms-2">
+                                            <p v-if="r.recipe">{{ r.recipeData.name }}<br/></p>
+                                            <p v-if="r.mealplan" class="font-italic">
+                                                {{ r.mealPlanData.mealType.name }} - {{ DateTime.fromJSDate(r.mealPlanData.fromDate).toLocaleString({month: 'long', day: 'numeric'}) }}
+                                            </p>
+                                        </div>
+
+                                        <template #append>
+                                            <div style="padding: 6px;">
+                                                <v-btn icon color="delete" style="width: 36px; height: 36px;">
+                                                    <v-icon icon="$delete"></v-icon>
+                                                    <delete-confirm-dialog :object-name="r.name" :model-name="$t('ShoppingListRecipe')"
+                                                                        @delete="deleteListRecipe(r)"></delete-confirm-dialog>
+                                                </v-btn>
+                                            </div>
+                                        </template>
+                                    </v-list-item>
                                         <template #prepend>
                                             <v-btn color="edit" icon>
                                                 {{ r.servings }}
@@ -407,6 +456,30 @@ const manualAddRecipe = ref<undefined | Recipe>(undefined)
 const selectEnabled = ref(false)
 const selectedLines = shallowRef([] as IShoppingListFood[])
 const selectedShoppingLists = ref([] as ShoppingList[])
+
+// recipe tab selection
+const selectedRecipeIds = ref([] as number[])
+const allRecipeIds = computed(() => useShoppingStore().getAssociatedRecipes().map(r => r.id!))
+// only count ids that still exist in the list, so stale selections never get deleted
+const selectedCurrentIds = computed(() => allRecipeIds.value.filter(id => selectedRecipeIds.value.includes(id)))
+const allRecipesSelected = computed(() => allRecipeIds.value.length > 0 && selectedCurrentIds.value.length === allRecipeIds.value.length)
+const someRecipesSelected = computed(() => selectedCurrentIds.value.length > 0 && !allRecipesSelected.value)
+
+function toggleAllRecipes(value: boolean | null) {
+    selectedRecipeIds.value = value ? [...allRecipeIds.value] : []
+}
+
+function deleteSelectedRecipes() {
+    const api = new ApiApi()
+    Promise.all(selectedCurrentIds.value.map(id => api.apiShoppingListRecipeDestroy({id: id}))).then(() => {
+        selectedRecipeIds.value = []
+        useShoppingStore().refreshFromAPI()
+        useMessageStore().addPreparedMessage(PreparedMessage.DELETE_SUCCESS)
+    }).catch(err => {
+        useMessageStore().addError(ErrorMessageType.DELETE_ERROR, err)
+        useShoppingStore().refreshFromAPI()
+    })
+}
 
 /**
  * VSelect items for shopping list grouping options with localized names
