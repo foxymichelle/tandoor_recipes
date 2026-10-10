@@ -56,7 +56,7 @@
                                             variant="outlined"
                                             :color="(importType == 'url') ? 'primary' : ''"
                                             elevation="1"
-                                            @click="importType = 'url'">
+                                            @click="selectImportType('url')">
                                         </v-card>
                                     </v-col>
 
@@ -68,7 +68,7 @@
                                             variant="outlined"
                                             :color="(importType == 'ai') ? 'primary' : ''"
                                             elevation="1"
-                                            @click="importType = 'ai'"
+                                            @click="selectImportType('ai')"
                                             :disabled="!useUserPreferenceStore().activeSpace.aiEnabled">
                                         </v-card>
                                     </v-col>
@@ -81,7 +81,7 @@
                                             variant="outlined"
                                             :color="(importType == 'app') ? 'primary' : ''"
                                             elevation="1"
-                                            @click="importType = 'app'">
+                                            @click="selectImportType('app')">
                                         </v-card>
                                     </v-col>
                                     <v-col cols="12" md="6">
@@ -92,7 +92,7 @@
                                             variant="outlined"
                                             :color="(importType == 'bookmarklet') ? 'primary' : ''"
                                             elevation="1"
-                                            @click="importType = 'bookmarklet'">
+                                            @click="selectImportType('bookmarklet')">
                                         </v-card>
                                     </v-col>
                                     <v-col cols="12" md="6">
@@ -103,7 +103,7 @@
                                             variant="outlined"
                                             :color="(importType == 'source') ? 'primary' : ''"
                                             elevation="1"
-                                            @click="importType = 'source'">
+                                            @click="selectImportType('source')">
                                         </v-card>
                                     </v-col>
                                     <v-col cols="12" md="6">
@@ -114,7 +114,7 @@
                                             variant="outlined"
                                             :color="(importType == 'url-list') ? 'primary' : ''"
                                             elevation="1"
-                                            @click="importType = 'url-list'">
+                                            @click="selectImportType('url-list')">
                                         </v-card>
                                     </v-col>
                                 </v-row>
@@ -321,8 +321,10 @@
                                                 <v-list-item v-for="(i, ingredientIndex) in s.ingredients" border>
                                                     <v-icon size="small" class="drag-handle cursor-grab mr-2" icon="$dragHandle"></v-icon>
                                                     <v-chip density="compact" label class="mr-1">{{ i.amount }}</v-chip>
-                                                    <v-chip density="compact" label class="mr-1" v-if="i.unit">{{ i.unit.name }}</v-chip>
-                                                    <v-chip density="compact" label class="mr-1" v-if="i.food">{{ i.food.name }}</v-chip>
+                                                    <v-chip density="compact" label class="mr-1" v-if="i.unit"
+                                                            :color="isNewUnit(i.unit.name) ? 'error' : undefined" :class="{'font-weight-bold': isNewUnit(i.unit.name)}">{{ i.unit.name }}</v-chip>
+                                                    <v-chip density="compact" label class="mr-1" v-if="i.food"
+                                                            :color="isNewFood(i.food.name) ? 'error' : undefined" :class="{'font-weight-bold': isNewFood(i.food.name)}">{{ i.food.name }}</v-chip>
                                                     <template #append>
                                                         <v-btn variant="plain" size="small" icon class="float-right">
                                                             <v-icon icon="$menu"></v-icon>
@@ -359,12 +361,22 @@
                                             <v-text-field :label="$t('Original_Text')" v-model="editingIngredient.originalText" readonly></v-text-field>
                                             <v-text-field :label="$t('Amount')" v-model="editingIngredient.amount"></v-text-field>
 
-                                            <v-text-field :label="$t('Unit')" v-model="editingIngredient.unit.name" :rules="['required']" v-if="editingIngredient.unit">
-                                                <template #append-inner>
-                                                    <v-btn icon="$delete" color="delete" @click="editingIngredient.unit = null"></v-btn>
+                                            <v-combobox :label="$t('Unit')" v-model="editingIngredient.unit.name" :items="unitNames" :rules="['required']" v-if="editingIngredient.unit"
+                                                        autocomplete="off" hide-no-data persistent-hint
+                                                        :base-color="isNewUnit(editingIngredient.unit.name) ? 'error' : undefined"
+                                                        :color="isNewUnit(editingIngredient.unit.name) ? 'error' : undefined"
+                                                        :hint="isNewUnit(editingIngredient.unit.name) ? 'New unit - will be created when the recipe is saved' : ''">
+                                                <template #append>
+                                                    <v-btn icon="$delete" color="delete" size="small" @click="editingIngredient.unit = null"></v-btn>
                                                 </template>
-                                            </v-text-field>
+                                            </v-combobox>
                                             <v-btn prepend-icon="$create" color="create" class="mb-4" @click="editingIngredient.unit = {name: ''}" v-else>{{ $t('Unit') }}</v-btn>
+
+                                            <v-combobox :label="$t('Food')" v-model="editingIngredient.food.name" :items="foodNames"
+                                                        autocomplete="off" hide-no-data persistent-hint
+                                                        :base-color="isNewFood(editingIngredient.food.name) ? 'error' : undefined"
+                                                        :color="isNewFood(editingIngredient.food.name) ? 'error' : undefined"
+                                                        :hint="isNewFood(editingIngredient.food.name) ? 'New food - will be created when the recipe is saved' : ''"></v-combobox>
 
                                             <v-text-field :label="$t('Food')" v-model="editingIngredient.food.name"></v-text-field>
                                             <v-text-field :label="$t('Note')" v-model="editingIngredient.note"></v-text-field>
@@ -567,7 +579,7 @@
 <script lang="ts" setup>
 
 import {useI18n} from "vue-i18n";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {
     AccessToken,
     AiProvider,
@@ -599,6 +611,7 @@ import bookmarkletJs from '@/assets/bookmarklet_v3?url'
 import StepIngredientSorterDialog from "@/components/dialogs/StepIngredientSorterDialog.vue";
 import {mergeAllSteps, splitAllSteps, splitStep} from "@/utils/step_utils.ts";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import {useImportNewItems} from "@/composables/useImportNewItems";
 
 function doListImport() {
     urlList.value = urlListImportInput.value.split('\n')
@@ -698,6 +711,34 @@ const editingIngredientIndex = ref(0)
 const dialogIngredientSorter = ref(false)
 const editingStep = ref<Step | SourceImportStep>({} as Step)
 const editingStepIndex = ref(0)
+
+const {loadExistingItems, isNewFood, isNewUnit, foodNames, unitNames} = useImportNewItems()
+
+/**
+ * as soon as an imported recipe arrives, load existing foods/units in the background
+ * so new items can be flagged by the time the steps editor is reached
+ */
+watch(() => importResponse.value.recipe, (recipe) => {
+    if (recipe) {
+        loadExistingItems()
+    }
+})
+
+/**
+ * select an import type and immediately move on to its first step
+ */
+function selectImportType(type: 'url' | 'ai' | 'app' | 'bookmarklet' | 'source' | 'url-list') {
+    importType.value = type
+    const firstSteps = {
+        'url': 'url',
+        'ai': 'url',
+        'source': 'url',
+        'app': 'app',
+        'bookmarklet': 'bookmarklet',
+        'url-list': 'url_list_input',
+    }
+    stepper.value = firstSteps[type]
+}
 
 onMounted(() => {
     loadOrCreateBookmarkletToken()
