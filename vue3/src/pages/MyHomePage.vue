@@ -588,6 +588,7 @@ function searchRecipes(options: VDataTableUpdateOptions) {
         if (err instanceof ShortcutError) {
             useMessageStore().addMessage(MessageType.WARNING, err.message)
         } else if (err?.name !== 'AbortError' && err?.cause?.name !== 'AbortError') {
+        }
     }).finally(() => {
         if (requestId == lastRequestId) {
             loading.value = false
