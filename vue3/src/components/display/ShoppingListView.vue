@@ -346,7 +346,8 @@
                                                         :number="r.servings"
                                                         @confirm="(servings: number) => {updateRecipeServings(r, servings)}"
                                                     ></number-scaler-dialog>
-                                                    <model-edit-dialog model="MealPlan" :item-id="r.mealplan" v-if="r.mealplan != undefined" activator="parent"></model-edit-dialog>
+                                                    <model-edit-dialog model="MealPlan" :item-id="r.mealplan" v-if="r.mealplan != undefined" activator="parent"
+                                                                        @save="useShoppingStore().refreshFromAPI()" @delete="useShoppingStore().refreshFromAPI()"></model-edit-dialog>
                                                 </v-btn>
                                             </div>
                                         </template>

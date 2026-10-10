@@ -59,7 +59,6 @@ import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import MealPlanCalendarHeader from "@/components/display/MealPlanCalendarHeader.vue";
 import {useI18n} from "vue-i18n";
 
-const {xs} = useDisplay()
 const {locale} = useI18n()
 
 const calendarDate = ref(new Date())
@@ -90,10 +89,8 @@ const planItems = computed(() => {
  * item height is the same on every screen size, 25% smaller on phones
  */
 const calendarItemHeight = computed(() => {
-    const baseRem = useUserPreferenceStore().deviceSettings.mealplan_displayPeriod == 'week' ? 3.5 : 1.6
-    return (xs.value ? baseRem * 0.75 : baseRem) + 'rem'
+    return useUserPreferenceStore().deviceSettings.mealplan_displayPeriod == 'week' ? '3.5rem' : '1.6rem'
 })
-
 /**
  * watch calendar date and load entries accordingly
  */
@@ -321,7 +318,7 @@ having to override as much.
 .cv-item.span5,
 .cv-item.span6,
 .cv-item.span7 {
-    text-align: center;
+    text-align: left;
 }
 
 /* Event Times */
