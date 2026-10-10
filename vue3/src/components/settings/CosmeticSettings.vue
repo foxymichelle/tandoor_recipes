@@ -16,6 +16,17 @@
 
         <v-btn class="mt-3" color="success" @click="useUserPreferenceStore().updateUserSettings()" prepend-icon="$save">{{$t('Save')}}</v-btn>
 
+        <p class="text-h6 mt-3">Menu</p>
+        <v-divider class="mb-3"></v-divider>
+        <p class="text-body-2 mb-2">Uncheck an item to hide it from the menu on this device. If Home is hidden, the app opens on the first checked item in this list.</p>
+        <v-checkbox v-for="item in getMenuItems()" :key="item.id" density="compact" hide-details
+                    :model-value="!useUserPreferenceStore().deviceSettings.nav_hiddenItems.includes(item.id)"
+                    @update:model-value="(checked: boolean | null) => setMenuItemVisible(item.id, !!checked)">
+            <template #label>
+                <v-icon :icon="item.prependIcon" class="me-3 fa-fw"></v-icon>{{ item.title }}
+            </template>
+        </v-checkbox>
+
         <p class="text-h6 mt-3">{{ $t('Preferences') }}</p>
         <v-divider class="mb-3"></v-divider>
 
@@ -48,8 +59,19 @@ import {ErrorMessageType, useMessageStore} from "@/stores/MessageStore";
 import {useI18n} from "vue-i18n";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import LanguageSelect from "@/components/inputs/LanguageSelect.vue";
+import {useNavigation} from "@/composables/useNavigation";
 
 const {t} = useI18n()
+
+const {getMenuItems} = useNavigation()
+
+function setMenuItemVisible(id: string, visible: boolean) {
+    const hidden = useUserPreferenceStore().deviceSettings.nav_hiddenItems.filter(x => x != id)
+    if (!visible) {
+        hidden.push(id)
+    }
+    useUserPreferenceStore().deviceSettings.nav_hiddenItems = hidden
+}
 
 const availableDefaultPages = ref([
     {page: 'SEARCH', label: t('Search')},

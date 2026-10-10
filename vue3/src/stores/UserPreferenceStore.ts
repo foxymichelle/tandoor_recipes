@@ -254,6 +254,8 @@ export const useUserPreferenceStore = defineStore('user_preference_store', () =>
             myhome_activeFoodRows: [[], []],
             myhome_activeQuick: 'none',
 
+            nav_hiddenItems: [],
+
             general_tableItemsPerPage: 10,
             general_closedHelpAlerts: [],
         }

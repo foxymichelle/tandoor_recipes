@@ -9,7 +9,7 @@
                    flat density="comfortable" v-if="useUserPreferenceStore().isAuthenticated && !useUserPreferenceStore().isPrintMode"
                    :absolute="!useUserPreferenceStore().userSettings.navSticky"
                    :scroll-behavior="useUserPreferenceStore().userSettings.navSticky ? 'elevate' : ''">
-            <router-link :to="{ name: 'StartPage', params: {} }">
+            <router-link :to="menuNav.getHomeRoute()">
                 <v-img src="../../assets/brand_logo.svg" width="140px" class="ms-2"
                        v-if="useUserPreferenceStore().userSettings.navShowLogo && !useUserPreferenceStore().activeSpace.navLogo"></v-img>
                 <v-img :src="useUserPreferenceStore().activeSpace.navLogo.preview" width="140px" class="ms-2"
@@ -89,15 +89,15 @@
         </v-navigation-drawer>
 
         <v-bottom-navigation grow v-if="useUserPreferenceStore().isAuthenticated && !lgAndUp && !useUserPreferenceStore().isPrintMode">
-            <v-btn value="recent" :to="{ name: 'StartPage', params: {} }">
-                <v-icon icon="fa-fw fas fa-book "/>
+            <v-btn value="recent" :to="menuNav.getHomeRoute()">
+                <v-icon :icon="menuNav.getHomeIcon()"/>
             </v-btn>
 
-            <v-btn value="favorites" to="/mealplan">
+            <v-btn value="favorites" to="/mealplan" v-if="!menuNav.isMenuItemHidden('mealplan')">
                 <v-icon icon="fa-fw fas fa-calendar-alt"></v-icon>
             </v-btn>
 
-            <v-btn value="nearby" to="/shopping">
+            <v-btn value="nearby" to="/shopping" v-if="!menuNav.isMenuItemHidden('shopping')">
                 <v-icon icon="fa-fw fas fa-shopping-cart"></v-icon>
             </v-btn>
 
@@ -144,6 +144,31 @@ const {t} = useI18n()
 
 const title = useTitle()
 const router = useRouter()
+
+
+const menuNav = useNavigation()
+
+/**
+ * if Home is hidden in the menu, the start page redirects to the first visible menu entry
+ */
+router.beforeEach((to) => {
+    if (to.name == 'StartPage' && menuNav.isMenuItemHidden('home')) {
+        const target = menuNav.getHomeRoute()
+        if (target.name != 'StartPage') {
+            return target
+        }
+    }
+})
+
+// safety net for the very first page load
+router.isReady().then(() => {
+    if (router.currentRoute.value.name == 'StartPage' && menuNav.isMenuItemHidden('home')) {
+        const target = menuNav.getHomeRoute()
+        if (target.name != 'StartPage') {
+            router.replace(target)
+        }
+    }
+})
 
 onMounted(() => {
     useUserPreferenceStore().init().then(() => {

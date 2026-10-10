@@ -31,6 +31,8 @@ export type DeviceSettings = {
     myhome_activeKeywordIds: number[][],
     myhome_activeFoodRows: string[][],
     myhome_activeQuick: 'none' | 'recent' | 'new',
+    
+    nav_hiddenItems: string[],
 
     general_tableItemsPerPage: number
     general_closedHelpAlerts: String[]
