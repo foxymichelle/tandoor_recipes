@@ -24,6 +24,7 @@ let routes = [
 
     //{path: '/settings/:page', component: SettingsPage, name: 'view_settings_page', props: true},
     {path: '/advanced-search', component: () => import("@/pages/SearchPage.vue"), name: 'SearchPage', meta: {title: 'Search'}},
+    {path: '/my-home', component: () => import("@/pages/MyHomePage.vue"), name: 'MyHomePage', meta: {title: 'My Home'}},
     {path: '/shopping', component: () => import("@/pages/ShoppingListPage.vue"), name: 'ShoppingListPage', meta: {title: 'Shopping_list'}},
     {path: '/mealplan', component: MealPlanPage, name: 'MealPlanPage', meta: {title: 'Meal_Plan'}},
     {path: '/books', component: () => import("@/pages/BooksPage.vue"), name: 'BooksPage', meta: {title: 'Books'}},

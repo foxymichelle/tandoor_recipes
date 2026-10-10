@@ -26,6 +26,12 @@ export type DeviceSettings = {
 
     start_showMealPlan: boolean,
 
+    myhome_keywordTerms: string,
+    myhome_foodTerms: string,
+    myhome_activeKeywords: string[],
+    myhome_activeFoods: string[],
+    myhome_activeQuick: 'none' | 'recent' | 'new',
+
     general_tableItemsPerPage: number
     general_closedHelpAlerts: String[]
 }
