@@ -29,7 +29,6 @@
                             :item-top="top"
                             @onDragStart="currentlyDraggedMealplan = value"
                             @delete="(arg: MealPlan) => {useMealPlanStore().plans.delete(arg.id)}"
-                            :detailed-items="lgAndUp"
                         ></meal-plan-calendar-item>
                     </template>
                 </calendar-view>
@@ -60,7 +59,7 @@ import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import MealPlanCalendarHeader from "@/components/display/MealPlanCalendarHeader.vue";
 import {useI18n} from "vue-i18n";
 
-const {lgAndUp} = useDisplay()
+const {xs} = useDisplay()
 const {locale} = useI18n()
 
 const calendarDate = ref(new Date())
@@ -88,14 +87,11 @@ const planItems = computed(() => {
 })
 
 /**
- * determine item height (one or two rows) based on how much space is available and how many days are shown
+ * item height is the same on every screen size, 25% smaller on phones
  */
 const calendarItemHeight = computed(() => {
-    if (lgAndUp.value && useUserPreferenceStore().deviceSettings.mealplan_displayPeriod == 'week') {
-        return '3.5rem'
-    } else {
-        return '1.6rem'
-    }
+    const baseRem = useUserPreferenceStore().deviceSettings.mealplan_displayPeriod == 'week' ? 3.5 : 1.6
+    return (xs.value ? baseRem * 0.75 : baseRem) + 'rem'
 })
 
 /**
