@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 
-import {computed, onMounted, PropType, ref} from "vue";
+import {computed, onMounted, PropType, ref, watch} from "vue";
 import VClosableCardTitle from "@/components/dialogs/VClosableCardTitle.vue";
 import {ApiApi, MealPlan, Recipe, RecipeFlat, RecipeOverview, ShoppingList, type ShoppingListEntryBulkCreate, ShoppingListRecipe} from "@/openapi";
 import {ErrorMessageType, PreparedMessage, useMessageStore} from "@/stores/MessageStore";
@@ -76,6 +76,13 @@ onMounted(() => {
     loadRecipeData()
 })
 
+// re-sync with the meal plan's current servings each time the dialog opens (the editor may have changed it)
+watch(dialog, (open) => {
+    if (open && props.mealPlan?.servings) {
+        servings.value = Number(props.mealPlan.servings)
+    }
+})
+
 /**
  * load data for the given recipe and all of its related recipes
  */
@@ -86,7 +93,7 @@ function loadRecipeData() {
 
     let recipeRequest = api.apiRecipeRetrieve({id: props.recipe.id!}).then(r => {
         recipe.value = r
-        servings.value = r.servings ? r.servings : 1
+        servings.value = props.mealPlan?.servings ? Number(props.mealPlan.servings) : (r.servings ? r.servings : 1)
         panel.value = r.id!
     }).catch(err => {
         useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)

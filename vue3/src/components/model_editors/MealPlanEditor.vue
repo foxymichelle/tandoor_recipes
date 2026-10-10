@@ -33,7 +33,7 @@
                                 <v-btn prepend-icon="$shopping" color="create" class="mt-1" v-if="!editingObj.shopping && editingObj.recipe && isUpdate()">
                                     {{ $t('Add') }}
                                     <add-to-shopping-dialog :recipe="editingObj.recipe" :meal-plan="editingObj"
-                                                            @created="editingObj.shopping = true;"></add-to-shopping-dialog>
+                                                            @created="onAddedToShopping()"></add-to-shopping-dialog>
                                 </v-btn>
 
                                 <v-checkbox :label="$t('AddToShopping')" v-model="editingObj.addshopping" hide-details v-if="editingObj.recipe && !isUpdate()"></v-checkbox>
@@ -209,6 +209,25 @@ onUnmounted(() => {
         useShoppingStore().selectedMealPlan = undefined
     }
 })
+
+/**
+ * after adding to shopping from the dialog, mark the plan as "in shopping" in the editor
+ * and in the calendar store without flagging unsaved changes
+ */
+function onAddedToShopping() {
+    const changed = editingObjChanged.value
+    ;(editingObj.value as any).shopping = true
+
+    const id = editingObj.value.id!
+    const stored = useMealPlanStore().plans.get(id)
+    if (stored) {
+        useMealPlanStore().plans.set(id, {...stored, shopping: true} as MealPlan)
+    }
+
+    nextTick(() => {
+        editingObjChanged.value = changed
+    })
+}
 
 /**
  * component specific state setup logic
