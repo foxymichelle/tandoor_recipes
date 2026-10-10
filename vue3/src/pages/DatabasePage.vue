@@ -22,6 +22,11 @@
             <database-model-col model="Unit"></database-model-col>
             <database-model-col model="Keyword"></database-model-col>
             <database-model-col model="PropertyType"></database-model-col>
+            <database-link-col :to="{name: 'FoodGroupingsPage'}"
+                               prepend-icon="fa-solid fa-layer-group"
+                               title="Food Groupings"
+                               subtitle="Search words that point to a specific list of foods">
+            </database-link-col>
         </v-row>
 
         <v-row>

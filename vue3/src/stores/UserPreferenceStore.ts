@@ -248,10 +248,10 @@ export const useUserPreferenceStore = defineStore('user_preference_store', () =>
 
             start_showMealPlan: true,
 
-            myhome_keywordTerms: '',
-            myhome_foodTerms: '',
-            myhome_activeKeywords: [],
-            myhome_activeFoods: [],
+            myhome_keywordRows: [[], [], []],
+            myhome_foodRows: [[], []],
+            myhome_activeKeywordRows: [[], [], []],
+            myhome_activeFoodRows: [[], []],
             myhome_activeQuick: 'none',
 
             general_tableItemsPerPage: 10,

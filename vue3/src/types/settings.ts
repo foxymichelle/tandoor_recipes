@@ -26,10 +26,10 @@ export type DeviceSettings = {
 
     start_showMealPlan: boolean,
 
-    myhome_keywordTerms: string,
-    myhome_foodTerms: string,
-    myhome_activeKeywords: string[],
-    myhome_activeFoods: string[],
+    myhome_keywordRows: string[][],
+    myhome_foodRows: string[][],
+    myhome_activeKeywordRows: string[][],
+    myhome_activeFoodRows: string[][],
     myhome_activeQuick: 'none' | 'recent' | 'new',
 
     general_tableItemsPerPage: number
