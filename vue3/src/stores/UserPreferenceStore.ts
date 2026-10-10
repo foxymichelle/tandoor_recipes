@@ -248,9 +248,9 @@ export const useUserPreferenceStore = defineStore('user_preference_store', () =>
 
             start_showMealPlan: true,
 
-            myhome_keywordRows: [[], [], []],
+            myhome_keywordButtons: [[], [], []],
             myhome_foodRows: [[], []],
-            myhome_activeKeywordRows: [[], [], []],
+            myhome_activeKeywordIds: [[], [], []],
             myhome_activeFoodRows: [[], []],
             myhome_activeQuick: 'none',
 

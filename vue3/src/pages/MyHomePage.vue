@@ -28,26 +28,7 @@
                 </v-btn>
             </v-col>
         </v-row>
-        <v-row dense class="mt-0" v-if="ds().myhome_keywordRows.some(r => r.length > 0) || ds().myhome_foodRows.some(r => r.length > 0)">
-            <v-col cols="12" md="10" offset-md="1">
-                <template v-for="(terms, row) in ds().myhome_keywordRows" :key="'kwrow_' + row">
-                    <div v-if="terms.length > 0" class="mb-1">
-                        <v-btn v-for="term in terms" :key="'kw_' + row + '_' + term" class="me-2 mb-2" size="small" rounded="xl" color="primary"
-                               :variant="isTermActive('kw', row, term) ? 'flat' : 'outlined'"
-                               @click="toggleTerm('kw', row, term)">{{ term }}
-                        </v-btn>
-                    </div>
-                </template>
-                <template v-for="(terms, row) in ds().myhome_foodRows" :key="'fdrow_' + row">
-                    <div v-if="terms.length > 0" class="mb-1">
-                        <v-btn v-for="term in terms" :key="'fd_' + row + '_' + term" class="me-2 mb-2" size="small" rounded="xl" color="secondary"
-                               :variant="isTermActive('fd', row, term) ? 'flat' : 'outlined'"
-                               @click="toggleTerm('fd', row, term)">{{ term }}
-                        </v-btn>
-                    </div>
-                </template>
-            </v-col>
-        </v-row>
+       
         <v-row dense>
             <v-col>
                 <v-expansion-panels v-model="panel">
@@ -72,14 +53,17 @@
                                                 @update:model-value="(item:string) =>{ filters[item].enabled = true; nextTick(() => {addFilterSelect = null})}" density="compact"
                                                 :label="$t('AddFilter')" v-model="addFilterSelect"></v-autocomplete>
 
-                                <div class="text-caption mb-1">Keyword shortcuts: buttons in a row mean "any of", rows combine with "and". Separate with commas.</div>
-                                <v-text-field v-for="(row, i) in draftKeywordRows" :key="'dkw_' + i" v-model="draftKeywordRows[i]"
-                                            :label="'Keyword row ' + (i + 1)" density="compact" class="mb-1" hide-details
-                                            @keydown.enter.prevent="saveShortcuts()"></v-text-field>
-                                <div class="text-caption mt-3 mb-1">Food shortcuts: a word matches a Food Grouping name first, otherwise every food containing the word.</div>
-                                <v-text-field v-for="(row, i) in draftFoodRows" :key="'dfd_' + i" v-model="draftFoodRows[i]"
-                                            :label="'Food row ' + (i + 1)" density="compact" class="mb-1" hide-details
-                                            @keydown.enter.prevent="saveShortcuts()"></v-text-field>
+                                <div class="text-caption mb-1">Keyword shortcuts: buttons in a row mean "any of", rows combine with "and".</div>
+                                <v-model-select v-for="(row, i) in draftKeywordRows" :key="'dkw_' + i" model="Keyword" v-model="draftKeywordRows[i]"
+                                                :label="'Keyword row ' + (i + 1)" multiple chips :return-object="false" density="compact" class="mb-2"></v-model-select>
+
+                                <div class="text-caption mt-3 mb-1">Food shortcuts: type words separated by commas, or pick a food to add its name. A word matches a Food Grouping name first, otherwise every food containing the word.</div>
+                                <div v-for="(row, i) in draftFoodRows" :key="'dfd_' + i" class="mb-2">
+                                    <v-text-field v-model="draftFoodRows[i]" :label="'Food row ' + (i + 1)" density="compact" hide-details class="mb-1"
+                                                @keydown.enter.prevent="saveShortcuts()"></v-text-field>
+                                    <v-model-select :key="'fpick_' + i + '_' + foodPickCounter" model="Food" density="compact" hide-details clearable
+                                                    label="Pick a food to add its name" @update:model-value="(food: any) => addFoodName(i, food)"></v-model-select>
+                                </div>
                                 <v-btn color="save" prepend-icon="$save" class="mt-3" @click="saveShortcuts()">Save Shortcuts</v-btn>
                             </v-form>
                             <v-row>
@@ -102,6 +86,27 @@
                     </v-expansion-panel>
                 </v-expansion-panels>
 
+            </v-col>
+        </v-row>
+
+        <v-row dense justify="center" class="mt-0" v-if="ds().myhome_keywordButtons.some(r => r.length > 0) || ds().myhome_foodRows.some(r => r.length > 0)">
+            <v-col cols="12" md="10" class="text-center">
+                <template v-for="(row, r) in ds().myhome_keywordButtons" :key="'kwrow_' + r">
+                    <div v-if="row.length > 0" class="mb-1">
+                        <v-btn v-for="k in row" :key="'kw_' + r + '_' + k.id" class="me-2 mb-2" size="small" rounded="xl" color="primary"
+                               :variant="isKeywordActive(r, k.id) ? 'flat' : 'outlined'"
+                               @click="toggleKeyword(r, k.id)">{{ k.name }}
+                        </v-btn>
+                    </div>
+                </template>
+                <template v-for="(terms, r) in ds().myhome_foodRows" :key="'fdrow_' + r">
+                    <div v-if="terms.length > 0" class="mb-1">
+                        <v-btn v-for="term in terms" :key="'fd_' + r + '_' + term" class="me-2 mb-2" size="small" rounded="xl" color="secondary"
+                               :variant="isFoodActive(r, term) ? 'flat' : 'outlined'"
+                               @click="toggleFood(r, term)">{{ term }}
+                        </v-btn>
+                    </div>
+                </template>
             </v-col>
         </v-row>
 
@@ -204,7 +209,7 @@
 import {computed, markRaw, nextTick, onMounted, ref, toRaw, watch} from "vue";
 import {ApiApi, ApiRecipeListRequest, CustomFilter, RecipeOverview} from "@/openapi";
 import {useI18n} from "vue-i18n";
-import {ErrorMessageType, useMessageStore} from "@/stores/MessageStore";
+import {ErrorMessageType, MessageType, useMessageStore} from "@/stores/MessageStore";
 import ModelSelect from "@/components/inputs/ModelSelect.vue";
 import {VDateInput} from 'vuetify/labs/VDateInput'
 import RecipeContextMenu from "@/components/inputs/RecipeContextMenu.vue";
@@ -283,75 +288,102 @@ const batchEditDialog = ref(false)
 
 
 // ---------- My Home: quick buttons and shortcut rows ----------
-type RowKind = 'kw' | 'fd'
 const ds = () => useUserPreferenceStore().deviceSettings
 let lastRequestId = 0
 let multiCache: { key: string, items: RecipeOverview[] } | null = null
-const keywordIdCache = new Map<string, number | null>()
 const foodIdCache = new Map<string, number[]>()
+const keywordNameCache = new Map<number, string>()
 let foodGroupingCache: { name: string, foodIds: number[] }[] | null = null
+const MAX_FOOD_IDS = 200
 
-// text typed into the shortcut inputs, only applied when "Save Shortcuts" is clicked
-const draftKeywordRows = ref<string[]>([])
-const draftFoodRows = ref<string[]>([])
+class ShortcutError extends Error {
+}
+
+// what is typed/picked in the dropdown, only applied when "Save Shortcuts" is clicked
+const draftKeywordRows = ref<number[][]>([[], [], []])
+const draftFoodRows = ref<string[]>(['', ''])
+const foodPickCounter = ref(0)
 
 function parseTerms(text: string): string[] {
     return Array.from(new Set(text.split(',').map(t => t.trim()).filter(t => t.length > 0)))
 }
 
 function loadDrafts() {
-    draftKeywordRows.value = Array.from({length: 3}, (_, i) => (ds().myhome_keywordRows[i] ?? []).join(', '))
+    draftKeywordRows.value = Array.from({length: 3}, (_, i) => (ds().myhome_keywordButtons[i] ?? []).map(k => k.id))
     draftFoodRows.value = Array.from({length: 2}, (_, i) => (ds().myhome_foodRows[i] ?? []).join(', '))
 }
 
 /**
- * apply the typed shortcuts to the buttons, drop active buttons that no longer exist
+ * add the name of a food picked in the dropdown to the comma list of a food row
  */
-function saveShortcuts() {
-    ds().myhome_keywordRows = draftKeywordRows.value.map(parseTerms)
+function addFoodName(row: number, food: any) {
+    if (!food || !food.name) return
+    const name = String(food.name).split(',')[0].trim()
+    const terms = parseTerms(draftFoodRows.value[row] ?? '')
+    if (name != '' && !terms.some(t => t.toLowerCase() == name.toLowerCase())) {
+        terms.push(name)
+    }
+    draftFoodRows.value[row] = terms.join(', ')
+    foodPickCounter.value++ // resets the pick dropdowns
+}
+
+/**
+ * apply the drafts to the buttons, drop active buttons that no longer exist
+ */
+async function saveShortcuts() {
+    const api = new ApiApi()
+    ds().myhome_keywordButtons.forEach(row => row.forEach(k => keywordNameCache.set(k.id, k.name)))
+
+    const keywordRows: { id: number, name: string }[][] = []
+    try {
+        for (const ids of draftKeywordRows.value) {
+            const row: { id: number, name: string }[] = []
+            for (const id of ids) {
+                if (!keywordNameCache.has(id)) {
+                    const keyword = await api.apiKeywordRetrieve({id: id})
+                    keywordNameCache.set(id, keyword.name)
+                }
+                row.push({id: id, name: keywordNameCache.get(id)!})
+            }
+            keywordRows.push(row)
+        }
+    } catch (err) {
+        useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
+        return
+    }
+
+    ds().myhome_keywordButtons = keywordRows
     ds().myhome_foodRows = draftFoodRows.value.map(parseTerms)
-    ds().myhome_activeKeywordRows = ds().myhome_keywordRows.map((terms, i) => (ds().myhome_activeKeywordRows[i] ?? []).filter(t => terms.includes(t)))
+    ds().myhome_activeKeywordIds = ds().myhome_keywordButtons.map((row, i) => (ds().myhome_activeKeywordIds[i] ?? []).filter(id => row.some(k => k.id == id)))
     ds().myhome_activeFoodRows = ds().myhome_foodRows.map((terms, i) => (ds().myhome_activeFoodRows[i] ?? []).filter(t => terms.includes(t)))
     loadDrafts()
 }
 
-function isTermActive(kind: RowKind, row: number, term: string): boolean {
-    const rows = kind == 'kw' ? ds().myhome_activeKeywordRows : ds().myhome_activeFoodRows
-    return (rows[row] ?? []).includes(term)
+function toggleInRows<T>(rows: T[][], row: number, value: T): T[][] {
+    const copy = rows.map(r => [...r])
+    while (copy.length <= row) copy.push([])
+    copy[row] = copy[row].includes(value) ? copy[row].filter(v => v !== value) : [...copy[row], value]
+    return copy
 }
 
-function toggleTerm(kind: RowKind, row: number, term: string) {
-    const rows = (kind == 'kw' ? ds().myhome_activeKeywordRows : ds().myhome_activeFoodRows).map(r => [...r])
-    while (rows.length <= row) rows.push([])
-    rows[row] = rows[row].includes(term) ? rows[row].filter(t => t != term) : [...rows[row], term]
-    if (kind == 'kw') {
-        ds().myhome_activeKeywordRows = rows
-    } else {
-        ds().myhome_activeFoodRows = rows
-    }
+function isKeywordActive(row: number, id: number): boolean {
+    return (ds().myhome_activeKeywordIds[row] ?? []).includes(id)
+}
+
+function toggleKeyword(row: number, id: number) {
+    ds().myhome_activeKeywordIds = toggleInRows(ds().myhome_activeKeywordIds, row, id)
+}
+
+function isFoodActive(row: number, term: string): boolean {
+    return (ds().myhome_activeFoodRows[row] ?? []).includes(term)
+}
+
+function toggleFood(row: number, term: string) {
+    ds().myhome_activeFoodRows = toggleInRows(ds().myhome_activeFoodRows, row, term)
 }
 
 function toggleQuick(mode: 'recent' | 'new') {
     ds().myhome_activeQuick = ds().myhome_activeQuick == mode ? 'none' : mode
-}
-
-/**
- * ids of all keywords for a row (exact name match first, otherwise first partial match)
- */
-async function resolveKeywordIds(terms: string[]): Promise<number[]> {
-    const api = new ApiApi()
-    const ids = new Set<number>()
-    for (const term of terms) {
-        const key = term.toLowerCase()
-        if (!keywordIdCache.has(key)) {
-            const r = await api.apiKeywordList({query: term, pageSize: 10})
-            const match = r.results.find(x => x.name.toLowerCase() == key) ?? r.results[0]
-            keywordIdCache.set(key, match ? match.id! : null)
-        }
-        const id = keywordIdCache.get(key)
-        if (id != null) ids.add(id)
-    }
-    return Array.from(ids)
 }
 
 /**
@@ -400,12 +432,17 @@ async function resolveFoodIds(terms: string[]): Promise<number[]> {
             const found: number[] = []
             for (let p = 1; p <= 5; p++) {
                 const r = await api.apiFoodList({query: term, page: p, pageSize: 100})
-                r.results.forEach(f => found.push(f.id!))
-                if (found.length >= r.count || r.results.length == 0) break
+                // the server may rank instead of filter (fuzzy search), so the name is checked here
+                const matches = r.results.filter(f => f.name.toLowerCase().includes(key))
+                matches.forEach(f => found.push(f.id!))
+                if (matches.length == 0 || found.length >= r.count || r.results.length == 0) break
             }
             foodIdCache.set(key, found)
         }
         foodIdCache.get(key)!.forEach(id => ids.add(id))
+    }
+    if (ids.size > MAX_FOOD_IDS) {
+        throw new ShortcutError(`The food words in one row match ${ids.size} foods, which is too many to search at once. Use a longer word or create a Food Grouping.`)
     }
     return Array.from(ids)
 }
@@ -425,7 +462,7 @@ async function fetchAllRecipes(params: ApiRecipeListRequest): Promise<RecipeOver
 }
 
 // any button change triggers a search automatically
-watch(() => JSON.stringify([ds().myhome_activeKeywordRows, ds().myhome_activeFoodRows, ds().myhome_activeQuick]), () => {
+watch(() => JSON.stringify([ds().myhome_activeKeywordIds, ds().myhome_activeFoodRows, ds().myhome_activeQuick]), () => {
     searchRecipes({page: 1})
 })
 
@@ -492,8 +529,8 @@ function searchRecipes(options: VDataTableUpdateOptions) {
     // the dropdown keyword/food "any" filters count as one more group each
     const keywordGroups: Promise<number[]>[] = []
     const foodGroups: Promise<number[]>[] = []
-    ds().myhome_activeKeywordRows.forEach(terms => {
-        if (terms.length > 0) keywordGroups.push(resolveKeywordIds(terms))
+    ds().myhome_activeKeywordIds.forEach(ids => {
+        if (ids.length > 0) keywordGroups.push(Promise.resolve([...ids]))
     })
     ds().myhome_activeFoodRows.forEach(terms => {
         if (terms.length > 0) foodGroups.push(resolveFoodIds(terms))
@@ -548,9 +585,9 @@ function searchRecipes(options: VDataTableUpdateOptions) {
         recipes.value = multiCache.items.slice(start, start + pageSize.value)
         tableItemCount.value = multiCache.items.length
     }).catch(err => {
-        if (err?.name !== 'AbortError' && err?.cause?.name !== 'AbortError') {
-            useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
-        }
+        if (err instanceof ShortcutError) {
+            useMessageStore().addMessage(MessageType.WARNING, err.message)
+        } else if (err?.name !== 'AbortError' && err?.cause?.name !== 'AbortError') {
     }).finally(() => {
         if (requestId == lastRequestId) {
             loading.value = false

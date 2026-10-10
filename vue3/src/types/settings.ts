@@ -26,9 +26,9 @@ export type DeviceSettings = {
 
     start_showMealPlan: boolean,
 
-    myhome_keywordRows: string[][],
+    myhome_keywordButtons: { id: number, name: string }[][],
     myhome_foodRows: string[][],
-    myhome_activeKeywordRows: string[][],
+    myhome_activeKeywordIds: number[][],
     myhome_activeFoodRows: string[][],
     myhome_activeQuick: 'none' | 'recent' | 'new',
 
