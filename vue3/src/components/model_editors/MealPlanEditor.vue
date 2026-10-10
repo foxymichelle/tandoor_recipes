@@ -218,10 +218,10 @@ function onAddedToShopping() {
     const changed = editingObjChanged.value
     ;(editingObj.value as any).shopping = true
 
-    const id = editingObj.value.id!
-    const stored = useMealPlanStore().plans.get(id)
+    // update the stored object in place; replacing it makes the editor re-initialize and hang
+    const stored = useMealPlanStore().plans.get(editingObj.value.id!)
     if (stored) {
-        useMealPlanStore().plans.set(id, {...stored, shopping: true} as MealPlan)
+        (stored as any).shopping = true
     }
 
     nextTick(() => {
