@@ -276,7 +276,8 @@
                                 <v-list>
                                     <v-list-item border v-for="k in importResponse.recipe.keywords" :key="k" :class="{'bg-success': k.importKeyword}"
                                                  @click="k.importKeyword = !k.importKeyword">
-                                        {{ k.label }}
+                                        <v-chip v-if="k.id == null" color="error" label size="small" class="font-weight-bold">{{ k.label }}</v-chip>
+                                        <span v-else>{{ k.label }}</span>
                                         <template #append>
                                             <v-checkbox-btn :model-value="k.importKeyword"></v-checkbox-btn>
                                         </template>
@@ -627,6 +628,7 @@ function importFromUrlList() {
 
         api.apiRecipeFromSourceCreate({recipeFromSource: {url: url}}).then(sourceResponse => {
             if (sourceResponse.recipe) {
+                roundImportAmounts(sourceResponse.recipe)
                 api.apiRecipeCreate({recipe: sourceResponse.recipe}).then(recipe => {
                     urlListImportedRecipes.value.push(recipe)
                     updateRecipeImage(recipe.id!, null, sourceResponse.recipe?.imageUrl).then(imageResponse => {
@@ -720,9 +722,26 @@ const {loadExistingItems, isNewFood, isNewUnit, foodNames, unitNames} = useImpor
  */
 watch(() => importResponse.value.recipe, (recipe) => {
     if (recipe) {
+        roundImportAmounts(recipe)
         loadExistingItems()
     }
 })
+
+/**
+ * limit imported ingredient amounts to 2 decimal places (0.33333333 -> 0.33)
+ */
+function roundImportAmounts(recipe: any) {
+    recipe.steps?.forEach((step: any) => {
+        step.ingredients?.forEach((ingredient: any) => {
+            const amount = Number(ingredient.amount)
+            if (!isNaN(amount) && amount > 0) {
+                const rounded = Math.round(amount * 100) / 100
+                // do not round tiny amounts down to zero
+                ingredient.amount = rounded > 0 ? rounded : amount
+            }
+        })
+    })
+}
 
 /**
  * select an import type and immediately move on to its first step

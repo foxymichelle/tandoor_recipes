@@ -2,7 +2,7 @@
     <model-editor-base
         :loading="loading"
         :dialog="dialog"
-        @save="saveObject"
+        @save="saveAll()"
         @delete="deleteObject"
         @close="emit('close'); editingObjChanged = false"
         :is-update="isUpdate()"
@@ -25,6 +25,7 @@
                     <v-form :disabled="loading">
 
                         <v-text-field :label="$t('Name')" v-model="editingObj.name"></v-text-field>
+                        <v-text-field label="Add aliases (separate with commas)" v-model="newAliases" :hint="aliasHint" persistent-hint class="mb-2"></v-text-field>
                         <v-textarea :label="$t('Description')" v-model="editingObj.description"></v-textarea>
 
                     </v-form>
@@ -45,6 +46,7 @@ import {Keyword} from "@/openapi";
 import ModelEditorBase from "@/components/model_editors/ModelEditorBase.vue";
 import {useModelEditorFunctions} from "@/composables/useModelEditorFunctions";
 import HierarchyEditor from "@/components/inputs/HierarchyEditor.vue";
+import {useAliases} from "@/composables/useAliases";
 
 const props = defineProps({
     item: {type: {} as PropType<Keyword>, required: false, default: null},
@@ -54,7 +56,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['create', 'save', 'delete', 'close', 'changedState'])
-const {setupState, deleteObject, saveObject, isUpdate, editingObjName, loading, editingObj, editingObjChanged, modelClass} = useModelEditorFunctions<Keyword>('Keyword', emit)
+const modelEditorFunctions = useModelEditorFunctions<Keyword>('Keyword', emit)
+const {setupState, deleteObject, saveObject, isUpdate, editingObjName, loading, editingObj, editingObjChanged, modelClass} = modelEditorFunctions
+const model = defineModel<typeof modelEditorFunctions>()
+const {newAliases, aliasHint, saveAliases} = useAliases('KEYWORD_ALIAS', editingObj, editingObjChanged)
+
+async function saveAll() {
+    await saveAliases()
+    saveObject()
+}
+model.value = {...modelEditorFunctions, saveObject: saveAll} as typeof modelEditorFunctions
 
 const tab = ref("keyword")
 

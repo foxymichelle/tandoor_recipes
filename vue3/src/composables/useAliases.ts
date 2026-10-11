@@ -2,7 +2,7 @@ import {computed, Ref, ref, watch} from "vue"
 import {ApiApi, AutomationTypeEnum} from "@/openapi"
 import {ErrorMessageType, useMessageStore} from "@/stores/MessageStore"
 
-export function useAliases(aliasType: 'FOOD_ALIAS' | 'UNIT_ALIAS', editingObj: Ref<any>, editingObjChanged: Ref<boolean>) {
+export function useAliases(aliasType: 'FOOD_ALIAS' | 'UNIT_ALIAS' | 'KEYWORD_ALIAS', editingObj: Ref<any>, editingObjChanged: Ref<boolean>) {
     const newAliases = ref('')
     const existingAliases = ref([] as string[])
 
